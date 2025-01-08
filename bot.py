@@ -2,6 +2,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 from flask import Flask
 import os
+import threading
 
 # Your Telegram Bot Token and User ID
 BOT_TOKEN = "7857880959:AAE3hNXpDjOemmElAX9vIYse5tMhjdaU-gs"
@@ -16,7 +17,7 @@ async def start(update: Update, context: CallbackContext) -> None:
         "Welcome to RecordWriterBot! 🎉\n"
         "We write records of any subject.\n"
         "Available within 10 kms of ECIL.\n\n"
-        "To make an enquiry:\n"
+        "To order:\n"
         "Send us your Name, Mobile Number, Record Name.\n"
         "Example:\n"
         "Name: \n"
@@ -24,26 +25,21 @@ async def start(update: Update, context: CallbackContext) -> None:
         "Record Subject: \n"
     )
 
-# Handle messages and forward details as enquiries
+# Handle messages and forward details
 async def handle_message(update: Update, context: CallbackContext) -> None:
     user_message = update.message.text
     user_name = update.message.from_user.first_name or "User"
-    # Forward the details to you as an enquiry
+    # Forward the details to you
     await context.bot.send_message(
         chat_id=OWNER_ID,
-        text=f"New Enquiry from {user_name}:\n\n{user_message}"
+        text=f"New Order from {user_name}:\n\n{user_message}"
     )
-    # Acknowledge the user with an enquiry confirmation
+    # Acknowledge the user
     await update.message.reply_text(
-        "Thanks for your enquiry! We'll contact you shortly. 👍"
+        "Thanks for your details! We'll contact you shortly. 👍"
     )
 
-# Flask route to make sure the web service is running
-@app.route('/')
-def hello():
-    return "The bot is running!"
-
-def main():
+def start_polling():
     # Create the Application instance with the bot token
     application = Application.builder().token(BOT_TOKEN).build()
 
@@ -51,9 +47,22 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Run the bot within the same event loop as Flask
+    # Start polling
     application.run_polling()
 
-if __name__ == "__main__":
-    # Run Flask in the main thread, and the bot within the same event loop.
+# Flask route to make sure the web service is running
+@app.route('/')
+def hello():
+    return "The bot is running!"
+
+def main():
+    # Start the bot in a separate thread to avoid blocking Flask
+    bot_thread = threading.Thread(target=start_polling)
+    bot_thread.daemon = True  # Make the thread daemon so it won't block shutdown
+    bot_thread.start()
+
+    # Run the Flask web server (This will serve the bot in a production-ready environment)
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+
+if __name__ == "__main__":
+    main()
