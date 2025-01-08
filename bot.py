@@ -2,7 +2,6 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 from flask import Flask
 import os
-import threading
 
 # Your Telegram Bot Token and User ID
 BOT_TOKEN = "7857880959:AAE3hNXpDjOemmElAX9vIYse5tMhjdaU-gs"
@@ -36,19 +35,8 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
     )
     # Acknowledge the user with an enquiry confirmation
     await update.message.reply_text(
-        "Thanks for your enquiry! We'll contact you shortly. 👍\n\nThis is an enquiry, not an order."
+        "Thanks for your enquiry! We'll contact you shortly. 👍"
     )
-
-def start_polling():
-    # Create the Application instance with the bot token
-    application = Application.builder().token(BOT_TOKEN).build()
-
-    # Handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    # Start polling
-    application.run_polling()
 
 # Flask route to make sure the web service is running
 @app.route('/')
@@ -56,12 +44,16 @@ def hello():
     return "The bot is running!"
 
 def main():
-    # Start the bot in a separate thread to avoid blocking Flask
-    bot_thread = threading.Thread(target=start_polling)
-    bot_thread.start()
+    # Create the Application instance with the bot token
+    application = Application.builder().token(BOT_TOKEN).build()
 
-    # Run the Flask web server
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    # Handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # Run the bot within the same event loop as Flask
+    application.run_polling()
 
 if __name__ == "__main__":
-    main()
+    # Run Flask in the main thread, and the bot within the same event loop.
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
