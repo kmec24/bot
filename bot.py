@@ -1,13 +1,13 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
 # Your Telegram Bot Token and User ID
 BOT_TOKEN = "7857880959:AAE3hNXpDjOemmElAX9vIYse5tMhjdaU-gs"
 OWNER_ID = "5960570782"
 
 # Start command
-def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text(
+async def start(update: Update, context: CallbackContext) -> None:
+    await update.message.reply_text(
         "Welcome to RecordWriterBot! 🎉\n"
         "We write records for Physics, Chemistry, and Botany.\n"
         "Rate: ₹1500 per record.\n"
@@ -23,27 +23,29 @@ def start(update: Update, context: CallbackContext) -> None:
     )
 
 # Handle messages and forward details
-def handle_message(update: Update, context: CallbackContext) -> None:
+async def handle_message(update: Update, context: CallbackContext) -> None:
     user_message = update.message.text
     user_name = update.message.from_user.first_name or "User"
     # Forward the details to you
-    context.bot.send_message(
+    await context.bot.send_message(
         chat_id=OWNER_ID,
         text=f"New Order from {user_name}:\n\n{user_message}"
     )
     # Acknowledge the user
-    update.message.reply_text(
+    await update.message.reply_text(
         "Thanks for your details! We'll contact you shortly. 👍"
     )
 
 def main():
-    updater = Updater(BOT_TOKEN)
+    # Create the Application instance with the bot token
+    application = Application.builder().token(BOT_TOKEN).build()
 
-    updater.dispatcher.add_handler(CommandHandler("start", start))
-    updater.dispatcher.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    # Handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    updater.start_polling()
-    updater.idle()
+    # Start the bot
+    application.run_polling()
 
 if __name__ == "__main__":
     main()
