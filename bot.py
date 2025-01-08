@@ -1,7 +1,6 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-from flask import Flask
-import os
+from flask import Flask, request
 import threading
 
 # Your Telegram Bot Token and User ID
@@ -39,7 +38,13 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
         "Thanks for your details! We'll contact you shortly. 👍"
     )
 
-def start_polling():
+# Flask route to trigger the bot polling
+@app.route("/")
+def index():
+    return "Bot is running!"
+
+# Function to run the bot using polling
+def run_polling():
     # Create the Application instance with the bot token
     application = Application.builder().token(BOT_TOKEN).build()
 
@@ -47,22 +52,12 @@ def start_polling():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Start polling
+    # Start polling for Telegram updates
     application.run_polling()
 
-# Flask route to make sure the web service is running
-@app.route('/')
-def hello():
-    return "The bot is running!"
-
-def main():
-    # Start the bot in a separate thread to avoid blocking Flask
-    bot_thread = threading.Thread(target=start_polling)
-    bot_thread.daemon = True  # Make the thread daemon so it won't block shutdown
-    bot_thread.start()
-
-    # Run the Flask web server (This will serve the bot in a production-ready environment)
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
-
+# Start the Flask app and the bot polling in separate threads
 if __name__ == "__main__":
-    main()
+    # Start Flask server in a separate thread
+    threading.Thread(target=app.run, kwargs={"host": "0.0.0.0", "port": 5000}).start()
+    # Run polling for the bot
+    run_polling()
