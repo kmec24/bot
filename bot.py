@@ -9,14 +9,14 @@ OWNER_ID = "5960570782"
 async def start(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(
         "Welcome to RecordWriterBot! 🎉\n"
-        "We write records for Physics, Chemistry, and Botany.\n"
+        "We write records of any subject.\n"
         "Available within 10 kms of ECIL.\n\n"
         "To order:\n"
         "Send us your Name, Mobile Number, Record Name.\n"
         "Example:\n"
         "Name: \n"
         "Mobile: \n"
-        "Record: \n"
+        "Record Subject: \n"
     )
 
 # Handle messages and forward details
