@@ -10,16 +10,13 @@ async def start(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(
         "Welcome to RecordWriterBot! 🎉\n"
         "We write records for Physics, Chemistry, and Botany.\n"
-        "Rate: ₹1500 per record.\n"
         "Available within 10 kms of ECIL.\n\n"
         "To order:\n"
-        "Send us your Name, Mobile Number, Record Type, and Subject.\n"
+        "Send us your Name, Mobile Number, Record Name.\n"
         "Example:\n"
-        "Name: John Doe\n"
-        "Mobile: 9876543210\n"
-        "Record: Botany Practical\n"
-        "Subject: Botany\n"
-        "We’ll reach you soon!"
+        "Name: \n"
+        "Mobile: \n"
+        "Record: \n"
     )
 
 # Handle messages and forward details
